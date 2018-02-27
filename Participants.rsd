@@ -1,0 +1,85 @@
+<rsb:script xmlns:rsb="http://www.rssbus.com/ns/rsbscript/2" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- See Column Definitions to specify column behavior and use XPaths to extract column values from JSON. -->
+  <rsb:info title="participants" desc="Generated schema file." xmlns:other="http://www.rssbus.com/ns/rsbscript/2/other">
+    <!-- You can modify the name, type, and column size here.  The name must match the values in the rsb:script block below -->
+    <attr name="documentid"       xs:type="string"   readonly="false" other:xPath="id"                                />
+    <attr name="title"            xs:type="string"   readonly="false" other:xPath="title"                             />
+    <attr name="access_code"      xs:type="integer"  readonly="false" other:xPath="{SubRepeatElement}/access_code"       />
+    <attr name="email"            xs:type="string"   readonly="false" other:xPath="{SubRepeatElement}/email"             />
+    <attr name="id"               xs:type="string"   readonly="false" other:xPath="{SubRepeatElement}/id"                />
+    <attr name="language_code"    xs:type="string"   readonly="false" other:xPath="{SubRepeatElement}/language_code"     />
+    <attr name="name"             xs:type="string"   readonly="false" other:xPath="{SubRepeatElement}/name"              />
+    <attr name="order"            xs:type="integer"  readonly="false" other:xPath="{SubRepeatElement}/order"             />
+    <attr name="organization"     xs:type="string"   readonly="false" other:xPath="{SubRepeatElement}/organization"      />
+    <attr name="status"           xs:type="integer"  readonly="false" other:xPath="{SubRepeatElement}/status"            />
+  </rsb:info>
+
+  <rsb:script method="GET">
+
+      <!-- 接続文字列のOauth Client Idを取得 接続文字列は_connectionオブジェクト＋接続文字列名でアクセス可能 -->
+      <rsb:set attr="clientid"  value="[_connection.OAuthClientId]" />
+
+
+      <!-- アクセストークン取得時のレスポンスBodyに対するJsonマッピングを指定 -->      
+      <rsb:set attr="TokenInputParam.ElementMapPath#1" value="/access_token" />
+      <rsb:set attr="TokenInputParam.ElementMapName#1" value="access_token" />
+      <!-- 以下の様なJsonを取得する
+
+      {
+        access_token: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX",
+        token_type: "Bearer",
+        expires_in: 3600
+      }
+      -->
+
+      <!-- アクセストークンを取得するためのURIの指定 -->      
+      <rsb:set attr="TokenInputParam.uri"  value="[_connection.baseuri]/token?client_id=[clientid]" />
+
+        <!-- OutputParameterを指定することで、 ElementMapPathで指定したレスポンスのBody情報を取得することが可能-->
+        <rsb:call op="jsonproviderGet" input="TokenInputParam" output="TokenOutputParam">
+
+          <rsb:set attr="AccessInputParam.EnablePaging" value="True" />  
+          <rsb:set attr="AccessInputParam.uri"  value="[_connection.baseuri]/documents" />
+          <rsb:set attr="AccessInputParam.header:name" value="Authorization"/>
+
+          <!-- ResponseBodyはOutputParmeterName + Jsonのアクセッサで取得可能 -->
+          <rsb:set attr="AccessInputParam.header:value" value="Bearer [TokenOutputParam.access_token]"/>
+          <rsb:set attr="AccessInputParam.RepeatElement" value="/documents"/>
+          <rsb:set attr="AccessInputParam.SubRepeatElement" value="/documents/participants"/>
+
+          <rsb:call op="jsonproviderGet" input="AccessInputParam">
+            <rsb:push/>
+          </rsb:call>
+  
+        </rsb:call>
+  </rsb:script>
+
+  <!-- To add support for INSERTS please see the INSERT Execution page within the help for further information and examples. -->
+  <rsb:script method="POST">
+    <rsb:set attr="method" value="POST"/>
+    <rsb:call op="jsonproviderGet">
+      <rsb:throw code="500" desc="Inserts are not currently supported."/>
+      <rsb:push/>
+    </rsb:call>
+  </rsb:script>
+
+  <!-- To add support for UPDATES please see the UPDATE Execution page within the help for further information and examples. -->
+  <rsb:script method="MERGE">
+    <rsb:set attr="method" value="PUT"/>
+    <rsb:call op="jsonproviderGet">
+      <rsb:throw code="500" desc="Updates are not currently supported."/>
+      <rsb:push/>
+    </rsb:call>
+  </rsb:script>
+
+  <!-- To add support for DELETES please see the DELETE Execution page within the help for further information and examples. -->
+  <rsb:script method="DELETE">
+    <rsb:set attr="method" value="DELETE"/>
+    <rsb:call op="jsonproviderGet">
+      <rsb:throw code="500" desc="Deletes are not currently supported."/>
+      <rsb:push/>
+    </rsb:call>
+  </rsb:script>
+
+</rsb:script>
