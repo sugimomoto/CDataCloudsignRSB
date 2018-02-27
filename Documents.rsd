@@ -18,6 +18,7 @@
 
   <rsb:script method="GET">
 
+
       <!-- 接続文字列のOauth Client Idを取得 接続文字列は_connectionオブジェクト＋接続文字列名でアクセス可能 -->
       <rsb:set attr="clientid"  value="[_connection.OAuthClientId]" />
 
